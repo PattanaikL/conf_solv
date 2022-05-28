@@ -1,0 +1,22 @@
+name: ConfSolv
+channels:
+  - pyg
+  - pytorch
+  - anaconda
+  - conda-forge
+  - defaults
+dependencies:
+  - numpy
+  - rdkit==2021.03.1
+  - pytorch==1.11.0
+  - pytorch-geometric==2.0.4
+  - pytorch-lightning==1.6.1
+  - einops
+  - sympy
+  - openbabel
+  - cclib
+  - xtb-python
+  - ase
+  - xtb==6.4.1
+  - crest
+  - py3dmol
