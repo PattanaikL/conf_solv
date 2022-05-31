@@ -43,7 +43,7 @@ class LitConfSolvModule(pl.LightningModule):
             out = out * mask
 
             # divide by all non-zero entries (non-diagonal true entries in mask)
-            normalized_coeff = torch.sum(mask.sum(dim=[1, 2]) - mask.sum(dim=[1, 2]).sqrt())
+            normalized_coeff = mask.sum()
 
         else:
             y = data.y * data.solute_mask
