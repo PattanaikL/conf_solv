@@ -30,7 +30,7 @@ def train_conf_solv(config):
         save_weights_only=True
     )
     neptune_logger = NeptuneLogger(
-        project="lagnajit/conf_solv",
+        project="lagnajit/conf-solv",
         api_token=os.environ["NEPTUNE_API_TOKEN"],
         tags=[],
         mode="offline",
