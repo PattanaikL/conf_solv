@@ -132,7 +132,15 @@ class SolventData3D(Dataset):
         return len(self.mol_ids)
 
     def __getitem__(self, key):
-        return self.process_key(key)
+        data = None
+        while data is None:
+            try:
+                data = self.process_key(key)
+            except:
+                data = None
+            if data is None:
+                key = random.choice(range(len(self.mol_ids)))
+        return data
 
 
 class SolventData3DModule(pl.LightningDataModule):
