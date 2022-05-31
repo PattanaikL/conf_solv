@@ -121,7 +121,7 @@ class SolventData3D(Dataset):
         pair_data = create_pairdata(solvent_molgraph, mols, self.max_confs)
 
         pair_data.y = torch.zeros([self.max_confs])
-        scaled_y = self.scaler.transform(self.scaler.transform(dG.reshape(-1, 1)))
+        scaled_y = self.scaler.transform(dG.reshape(-1, 1))
         pair_data.y[:len(scaled_y)] = torch.tensor(scaled_y.reshape(-1), dtype=torch.float)
         pair_data.mol_id = mol_id
 
