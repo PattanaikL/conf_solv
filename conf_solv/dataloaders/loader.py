@@ -93,21 +93,22 @@ class SolventData3D(Dataset):
 
     def process_key(self, key):
 
-        if self.solvent:
-            solvent_smi = self.solvent
-        else:
-            solvent_smi = random.choice(list(SOLVENTS.values())[1:])
+        available_confs = []
+        while len(available_confs) == 0:
 
-        mol_id = self.mol_ids[key]
-        sample_coords = self.coords.loc[(mol_id, slice(None))]
-        sample_energies = self.energies.loc[(mol_id, slice(None), SOLVENTS_REVERSE[solvent_smi])]
+            if self.solvent:
+                solvent_smi = self.solvent
+            else:
+                solvent_smi = random.choice(list(SOLVENTS.values())[1:])
 
-        sample_coord_confs = sample_coords.index.get_level_values("conf_id").values
-        sample_energy_confs = sample_energies.index.get_level_values("conf_id").values
+            mol_id = self.mol_ids[key]
+            sample_coords = self.coords.loc[(mol_id, slice(None))]
+            sample_energies = self.energies.loc[(mol_id, slice(None), SOLVENTS_REVERSE[solvent_smi])]
 
-        available_confs = np.intersect1d(sample_coord_confs, sample_energy_confs)
-        if len(available_confs) == 0:
-            return None
+            sample_coord_confs = sample_coords.index.get_level_values("conf_id").values
+            sample_energy_confs = sample_energies.index.get_level_values("conf_id").values
+
+            available_confs = np.intersect1d(sample_coord_confs, sample_energy_confs)
 
         if self.mode == 'train':  # random sampling during training
             conf_ids = random.sample(list(available_confs), min(self.max_confs, len(available_confs)))
