@@ -10,8 +10,6 @@ Prediction of conformer solution free energy with deep learning
 * pytorch-lightning (version==1.6.1)
 
 ## Installation
-Installation of some of these packages can be a headache. I am still trying to figure out the best way to install torch
-and torch-geometric, but here is the suggested way:
 
 ### Create the environment and activate
 ```
@@ -35,6 +33,8 @@ conda install pyg -c pyg
 conda install -c rdkit rdkit
 conda install -c conda-forge einops
 conda install -c conda-forge pytorch-lightning==1.6.1
+conda install -c conda-forge ase
+conda install -c anaconda sympy
 ```
 
 ### I had to do some special stuff to get jupyter working
@@ -47,6 +47,8 @@ conda install nbconvert==6.4.3
 ### Finally, clone this repo
 ```
 git clone https://github.com/PattanaikL/conf_solv
+cd conf_solv
+pip install -e .
 ```
 
 ### I used Neptune to keep track of experiments, and I thought it was useful to keep my experiments organized (optional, only for training)
