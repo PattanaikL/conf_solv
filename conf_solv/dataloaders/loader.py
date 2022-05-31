@@ -163,7 +163,6 @@ class SolventData3DModule(pl.LightningDataModule):
             shuffle=True,
             num_workers=self.num_workers,
             follow_batch=["x_solvent", "x_solute"],
-            timeout=60,
         )
 
     def val_dataloader(self):
@@ -174,7 +173,6 @@ class SolventData3DModule(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.num_workers,
             follow_batch=["x_solvent", "x_solute"],
-            timeout=60,
         )
 
     def test_dataloader(self):
@@ -185,7 +183,6 @@ class SolventData3DModule(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.num_workers,
             follow_batch=["x_solvent", "x_solute"],
-            timeout=60,
         )
 
     @staticmethod
