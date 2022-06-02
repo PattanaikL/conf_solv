@@ -34,6 +34,7 @@ def train_conf_solv(config):
         api_token=os.environ["NEPTUNE_API_TOKEN"],
         tags=[],
         mode="offline",
+        source_files=["conf_solv/*/*.py"],
     )
     try:
         neptune_logger.run
