@@ -3,7 +3,7 @@ import pytorch_lightning as pl  # causing issues
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning import seed_everything
 from pytorch_lightning.loggers import NeptuneLogger
-
+from pytorch_lightning.profiler import PyTorchProfiler
 from conf_solv.dataloaders.loader import SolventData3DModule
 from conf_solv.trainer import LitConfSolvModule
 
@@ -42,14 +42,22 @@ def train_conf_solv(config):
         pass
     trainer = pl.Trainer(
         logger=neptune_logger,
+        default_root_dir=config["log_dir"],
         gpus=config["gpus"],
         max_epochs=config["n_epochs"],
         callbacks=[LearningRateMonitor(),
                    checkpoint_callback,
                    ],
         gradient_clip_val=10.0,
+        profiler=PyTorchProfiler(dirpath=config["log_dir"]) if config["profile"] else None,
+        auto_lr_find="lr",
+        auto_scale_batch_size="binsearch",
     )
-    trainer.fit(model, solvation_data)
+
+    if config["tune"]:
+        trainer.tune(model=model, datamodule=solvation_data)
+
+    trainer.fit(model=model, datamodule=solvation_data)
 
 
 if __name__ == "__main__":

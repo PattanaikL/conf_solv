@@ -142,6 +142,11 @@ class LitConfSolvModule(pl.LightningModule):
         parser.add_argument('--n_training_points', type=int, default=None)
         parser.add_argument('--threshold', type=int, default=100)
         parser.add_argument('--scaler_type', type=str, default=None)
+
+        # debugging
+        parser.add_argument('--profile', action='store_true', default=False)
+        parser.add_argument('--tune', action='store_true', default=False)
+
         return parent_parser
 
     @staticmethod
