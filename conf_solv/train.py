@@ -52,6 +52,7 @@ def train_conf_solv(config):
         profiler=PyTorchProfiler(dirpath=config["log_dir"]) if config["profile"] else None,
         auto_lr_find="lr",
         auto_scale_batch_size="binsearch",
+        strategy="ddp" if config["gpus"] > 1 else None,
     )
 
     if config["tune"]:
