@@ -8,7 +8,7 @@ import torch
 import pytorch_lightning as pl
 import torch_geometric as tg
 from torch_geometric.data import Data, Dataset
-from torch_geometric.loader import DataLoader
+from .collate import DataLoader
 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from .features import MolGraph, SOLVENTS, SOLVENTS_REVERSE
