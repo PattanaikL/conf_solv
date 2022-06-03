@@ -113,7 +113,7 @@ class ConfSolv(nn.Module):
             for _ in range(self.max_confs):
                 solute_confs_batch.extend([counter] * n_atoms)
                 counter += 1
-        solute_confs_batch = torch.tensor(solute_confs_batch, dtype=torch.int64).to(h1.device)
+        solute_confs_batch = torch.tensor(solute_confs_batch, dtype=torch.int64, device=h1.device)
 
         # conformers are batched along first dimension (this is why we use repeat_interleave)
         h2_ = self.solute_model(data.z_solute, data.pos_solute, solute_confs_batch)
@@ -135,7 +135,7 @@ class ConfSolv(nn.Module):
         else:
             if self.solute_model_type != 'SphereNet':
                 h2_ = scatter(h2_, solute_confs_batch, dim=0, reduce="add")
-            h2 = torch.where(data.solute_mask.unsqueeze(-1) == False, torch.tensor([0.]).to(h1.device), h2_)
+            h2 = torch.where(data.solute_mask.unsqueeze(-1) == False, torch.tensor([0.], device=h1.device), h2_)
             h1 = torch.repeat_interleave(h1, self.max_confs, dim=0)
 
         h = torch.cat([h1, h2], dim=-1)
