@@ -101,19 +101,10 @@ class ConfSolv(nn.Module):
 
     def forward(self, data):
         # torch.autograd.set_detect_anomaly(True)
-        x_solvent, edge_index_solvent, edge_attr_solvent, mol_attr_solvent, solvent_batch = \
-            data.x_solvent, data.edge_index_solvent, data.edge_attr_solvent, data.mol_attr_solvent, data.x_solvent_batch
+        x_solvent, edge_index_solvent, edge_attr_solvent, mol_attr_solvent, solvent_batch, solute_confs_batch = \
+            data.x_solvent, data.edge_index_solvent, data.edge_attr_solvent, data.mol_attr_solvent, data.x_solvent_batch, data.solute_confs_batch
 
         h1 = self.solvent_model(x_solvent, edge_index_solvent, edge_attr_solvent, solvent_batch)
-
-        # create batch tensor for conformers
-        solute_confs_batch = []
-        counter = 0
-        for n_atoms in data.x_solute_batch.bincount():
-            for _ in range(self.max_confs):
-                solute_confs_batch.extend([counter] * n_atoms)
-                counter += 1
-        solute_confs_batch = torch.tensor(solute_confs_batch, dtype=torch.int64, device=h1.device)
 
         # conformers are batched along first dimension (this is why we use repeat_interleave)
         h2_ = self.solute_model(data.z_solute, data.pos_solute, solute_confs_batch)
