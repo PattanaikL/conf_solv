@@ -10,9 +10,9 @@ from conf_solv.trainer import LitConfSolvModule
 import os
 from argparse import ArgumentParser
 
-import resource  # for ancdata error
-rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
-resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
+# import resource  # for ancdata error
+# rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
+# resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
 
 
 def train_conf_solv(config):

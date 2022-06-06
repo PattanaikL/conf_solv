@@ -12,6 +12,7 @@ from .collate import DataLoader
 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from .features import MolGraph, SOLVENTS, SOLVENTS_REVERSE
+from .scalers import TorchMinMaxScaler, TorchStandardScaler
 
 
 class PairData(Data):
@@ -157,11 +158,15 @@ class SolventData3DModule(pl.LightningDataModule):
 
         dG_train = self.energies_df["dG"][self.energies_df.index.isin(self.split[0])].values
         if config["scaler_type"] == "standard":
-            self.scaler = StandardScaler().fit(dG_train.reshape(-1, 1))
+            #self.scaler = StandardScaler().fit(dG_train.reshape(-1, 1))
+            self.scaler = TorchStandardScaler().fit(torch.from_numpy(dG_train.reshape(-1, 1)))
+
         elif config["scaler_type"] == "min_max":
             self.scaler = MinMaxScaler().fit(dG_train.reshape(-1, 1))
         else:
-            self.scaler = StandardScaler().fit(np.array([[0]]))
+            #self.scaler = StandardScaler().fit(np.array([[0]]))
+            self.scaler = TorchStandardScaler().fit(torch.zeros(1))
+
 
     def train_dataloader(self):
         train_dataset = SolventData3D(self.config, self.coords_df, self.energies_df, self.split, self.scaler, mode="train")
