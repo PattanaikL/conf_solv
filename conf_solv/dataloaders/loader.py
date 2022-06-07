@@ -117,14 +117,14 @@ class SolventData3D(Dataset):
             conf_ids = sample_energy_confs[np.in1d(sample_energy_confs, available_confs)][:min(self.max_confs, len(available_confs))]
 
         mols = sample_coords.loc[conf_ids]['mol'].values
-        dG = sample_energies.loc[(mol_id, conf_ids, slice(None))]["dG"].values
+        dG = torch.tensor(sample_energies.loc[(mol_id, conf_ids, slice(None))]["dG"].values, dtype=torch.float)
 
         solvent_molgraph = MolGraph(solvent_smi)
         pair_data = create_pairdata(solvent_molgraph, mols, self.max_confs)
 
         pair_data.y = torch.zeros([self.max_confs])
         scaled_y = self.scaler.transform(dG.reshape(-1, 1))
-        pair_data.y[:len(scaled_y)] = torch.tensor(scaled_y.reshape(-1), dtype=torch.float)
+        pair_data.y[:len(scaled_y)] = scaled_y.reshape(-1)
         pair_data.mol_id = mol_id
 
         return pair_data
