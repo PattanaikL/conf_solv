@@ -166,7 +166,8 @@ class SolventData3DModule(pl.LightningDataModule):
             self.scaler.fit(dG_train.reshape(-1, 1))
         else:
             self.scaler = TorchStandardScaler()
-            self.scaler.fit(torch.zeros(1))
+            self.scaler.mean = torch.tensor(0.)
+            self.scaler.std = torch.tensor(1.)
 
     def train_dataloader(self):
         train_dataset = SolventData3D(self.config, self.coords_df, self.energies_df, self.split, self.scaler, mode="train")
