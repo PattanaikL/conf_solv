@@ -8,16 +8,19 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 class TorchStandardScaler(nn.Module):
     def fit(self, x):
-        self.mean = x.mean(0, keepdim=True)
-        self.std = x.std(0, unbiased=False, keepdim=True)
+        self.mean = x.mean(dim=0, keepdim=True)
+        self.std = x.std(dim=0, unbiased=False, keepdim=True)
+
     def transform(self, x):
-        x -= self.mean
-        x /= (self.std + 1e-7)
+        x = x - self.mean
+        x = x / (self.std + 1e-7)
         return x
+
     def inverse_transform(self,x):
-        x *= (self.std + 1e-7)
-        x += self.mean
+        x * x * (self.std + 1e-7)
+        x = x + self.mean
         return x
+
 
 class TorchMinMaxScaler(nn.Module):
     """MinMax Scaler
