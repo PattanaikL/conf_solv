@@ -77,7 +77,7 @@ class LitConfSolvModule(pl.LightningModule):
 
     def on_load_checkpoint(self, checkpoint) -> None:
         "Objects to retrieve from checkpoint file"
-        self.trainer.datamodule.scaler = checkpoint["scaler"]
+        self.scaler = checkpoint["scaler"]
 
     @staticmethod
     def add_model_specific_args(parent_parser):
