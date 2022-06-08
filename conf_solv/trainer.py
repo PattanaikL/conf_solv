@@ -53,9 +53,9 @@ class LitConfSolvModule(pl.LightningModule):
 
         batch_size = len(data.mol_id)
         scaler = self.trainer.datamodule.scaler
-        pred = scaler.inverse_transform(out.view(-1, 1).cpu().detach().numpy())
-        unscaled_y = scaler.inverse_transform(y.view(-1, 1).cpu().detach().numpy())
-        rmse = np.sqrt(np.sum((pred-unscaled_y)**2) / normalized_coeff.cpu().detach().numpy())
+        pred = scaler.inverse_transform(out.view(-1, 1))
+        unscaled_y = scaler.inverse_transform(y.view(-1, 1))
+        rmse = torch.sqrt(torch.sum((pred-unscaled_y)**2) / normalized_coeff)
 
         # logs
         self.log(f'{mode}_loss', loss, batch_size=batch_size)

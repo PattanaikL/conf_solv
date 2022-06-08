@@ -12,6 +12,7 @@ from .collate import DataLoader
 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from .features import MolGraph, SOLVENTS, SOLVENTS_REVERSE
+from .scalers import TorchMinMaxScaler, TorchStandardScaler
 
 
 class PairData(Data):
@@ -116,14 +117,14 @@ class SolventData3D(Dataset):
             conf_ids = sample_energy_confs[np.in1d(sample_energy_confs, available_confs)][:min(self.max_confs, len(available_confs))]
 
         mols = sample_coords.loc[conf_ids]['mol'].values
-        dG = sample_energies.loc[(mol_id, conf_ids, slice(None))]["dG"].values
+        dG = torch.tensor(sample_energies.loc[(mol_id, conf_ids, slice(None))]["dG"].values, dtype=torch.float)
 
         solvent_molgraph = MolGraph(solvent_smi)
         pair_data = create_pairdata(solvent_molgraph, mols, self.max_confs)
 
         pair_data.y = torch.zeros([self.max_confs])
         scaled_y = self.scaler.transform(dG.reshape(-1, 1))
-        pair_data.y[:len(scaled_y)] = torch.tensor(scaled_y.reshape(-1), dtype=torch.float)
+        pair_data.y[:len(scaled_y)] = scaled_y.reshape(-1)
         pair_data.mol_id = mol_id
 
         return pair_data
@@ -157,11 +158,16 @@ class SolventData3DModule(pl.LightningDataModule):
 
         dG_train = self.energies_df["dG"][self.energies_df.index.isin(self.split[0])].values
         if config["scaler_type"] == "standard":
-            self.scaler = StandardScaler().fit(dG_train.reshape(-1, 1))
+            self.scaler = TorchStandardScaler()
+            self.scaler.fit(torch.from_numpy(dG_train.reshape(-1, 1)))
+
         elif config["scaler_type"] == "min_max":
-            self.scaler = MinMaxScaler().fit(dG_train.reshape(-1, 1))
+            self.scaler = TorchMinMaxScaler()
+            self.scaler.fit(dG_train.reshape(-1, 1))
         else:
-            self.scaler = StandardScaler().fit(np.array([[0]]))
+            self.scaler = TorchStandardScaler()
+            self.scaler.mean = torch.tensor(0.)
+            self.scaler.std = torch.tensor(1.)
 
     def train_dataloader(self):
         train_dataset = SolventData3D(self.config, self.coords_df, self.energies_df, self.split, self.scaler, mode="train")
