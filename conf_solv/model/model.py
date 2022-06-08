@@ -9,6 +9,7 @@ from torch_geometric.nn.models import DimeNet
 from .schnet import SchNet
 from .dimenet_pp import DimeNetPlusPlus
 from .spherenet import SphereNet
+from .painn import PaiNN
 
 
 class ConfSolv(nn.Module):
@@ -83,6 +84,14 @@ class ConfSolv(nn.Module):
                 out_emb_channels=config["out_emb_channels"],
                 num_spherical=config["num_spherical"],
                 num_radial=config["num_radial"],
+            )
+        
+        elif self.solute_model_type == 'PaiNN':
+            self.solute_model = PaiNN(
+                num_feat=config["solute_hidden_dim"],
+                cutoff=config["cutoff"],
+                num_radial=config["num_radial"],
+                num_interactions=config["num_blocks"],
             )
 
         self.ffn = MLP(
