@@ -70,6 +70,14 @@ class LitConfSolvModule(pl.LightningModule):
     def validation_step(self, data, batch_idx):
         loss = self._step(data, batch_idx, mode="val")
         return loss
+    
+    def on_save_checkpoint(self, checkpoint) -> None:
+        "Objects to include in checkpoint file"
+        checkpoint["scaler"] = self.trainer.datamodule.scaler
+
+    def on_load_checkpoint(self, checkpoint) -> None:
+        "Objects to retrieve from checkpoint file"
+        self.trainer.datamodule.scaler = checkpoint["scaler"]
 
     @staticmethod
     def add_model_specific_args(parent_parser):
