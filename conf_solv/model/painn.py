@@ -16,7 +16,6 @@ from torch.nn import Linear, Embedding
 
 from torch_geometric.nn import MessagePassing
 from torch_geometric.nn import radius_graph
-from torch_scatter import scatter
 
 
 class BesselBasis(torch.nn.Module):
@@ -197,8 +196,6 @@ class PaiNN(torch.nn.Module):
         self.cutoff = cutoff
         self.num_radial = num_radial
         self.num_feat = num_feat
-        self.lin = Linear(num_feat, num_feat)
-        self.silu = F.silu
 
         self.embedding = Embedding(95, num_feat)
 
@@ -213,6 +210,11 @@ class PaiNN(torch.nn.Module):
                 UpdatePaiNN(num_feat)
                 for _ in range(self.num_interactions)
             ]
+        )
+        self.readout = nn.Sequential(
+            Linear(num_feat, num_feat),
+            torch.nn.SiLU(),
+            Linear(num_feat, num_feat),
         )
 
     def forward(self, z, pos, batch=None, mask=None): #Removed edge index, as it will be determined on the fly instead of being passed.
@@ -231,10 +233,6 @@ class PaiNN(torch.nn.Module):
             s_temp, v_temp = self.list_update[i](s, v)
             s, v = s_temp + s, v_temp + v
 
-        s = self.lin(s)
-        s = self.silu(s)
-        s = self.lin(s)
-
-        #out = scatter(s, batch, dim=0, reduce="add") - Commenting this out. Lucky does the aggregation in model.py
+        s = self.readout(s)
 
         return s
