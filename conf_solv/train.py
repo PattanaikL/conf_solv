@@ -53,6 +53,7 @@ def train_conf_solv(config):
         auto_lr_find="lr",
         auto_scale_batch_size="binsearch",
         strategy="ddp" if config["gpus"] > 1 else None,
+        track_grad_norm=2 if config["debug"] else -1,
     )
 
     if config["tune"]:

@@ -16,6 +16,7 @@ class LitConfSolvModule(pl.LightningModule):
         self.relative_loss = config["relative_loss"]
         self.relative_model = config["relative_model"]
         self.max_confs = config["max_confs"]
+        self.debug = config["debug"]
 
     def forward(self, data):
         return self.model(data)
@@ -166,6 +167,7 @@ class LitConfSolvModule(pl.LightningModule):
         parser.add_argument('--split_path', type=str, default='data/debug/split_0.npy')
         parser.add_argument('--seed', type=int, default=0)
         parser.add_argument('--verbose', action='store_true', default=False)
+        parser.add_argument('--debug', action='store_true', default=False)
         return parent_parser
 
     @classmethod
