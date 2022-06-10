@@ -13,6 +13,7 @@ class LitConfSolvModule(pl.LightningModule):
         self.model = ConfSolv(config)
         self.config = config
         self.lr = config["lr"]
+        self.weight_decay = config["weight_decay"]
         self.relative_loss = config["relative_loss"]
         self.relative_model = config["relative_model"]
         self.max_confs = config["max_confs"]
@@ -22,7 +23,7 @@ class LitConfSolvModule(pl.LightningModule):
         return self.model(data)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.7,
                                                                patience=5, min_lr=self.lr / 100)
         return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val_loss"}
@@ -144,6 +145,7 @@ class LitConfSolvModule(pl.LightningModule):
         parser.add_argument('--warmup_epochs', type=int, default=2)
         parser.add_argument('--batch_size', type=int, default=16)
         parser.add_argument('--lr', type=float, default=1e-3)
+        parser.add_argument('--weight_decay', type=float, default=0)
         parser.add_argument('--num_workers', type=int, default=2)
         parser.add_argument('--max_confs', type=int, default=10)
         parser.add_argument('--relative_model', action='store_true', default=False)
