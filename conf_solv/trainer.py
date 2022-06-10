@@ -58,10 +58,12 @@ class LitConfSolvModule(pl.LightningModule):
         pred = scaler.inverse_transform(out.view(-1, 1))
         unscaled_y = scaler.inverse_transform(y.view(-1, 1))
         rmse = torch.sqrt(torch.sum((pred-unscaled_y)**2) / normalized_coeff)
+        mae = torch.abs(pred-unscaled_y).sum() / normalized_coeff
 
         # logs
         self.log(f'{mode}_loss', loss, batch_size=batch_size)
         self.log(f'{mode}_rmse', rmse, batch_size=batch_size)
+        self.log(f'{mode}_mae', mae, batch_size=batch_size)
 
         return loss
 
