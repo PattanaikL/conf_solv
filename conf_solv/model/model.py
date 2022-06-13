@@ -5,7 +5,7 @@ import torch_geometric as tg
 from torch_scatter import scatter
 
 from .gnn import MLP, GNN
-from torch_geometric.nn.models import DimeNet
+from .dimenet import DimeNet
 from .schnet import SchNet
 from .dimenet_pp import DimeNetPlusPlus
 from .spherenet import SphereNet
