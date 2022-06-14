@@ -22,7 +22,6 @@ class ConfSolv(nn.Module):
         self.relative_model = config["relative_model"]
         self.diff_type = config["diff_type"]
         self.solute_hidden_dim = config["solute_hidden_dim"]
-        self.max_confs = config["max_confs"]
         self.solute_model_type = config["solute_model"]
 
         self.solvent_model = GNN(
@@ -108,7 +107,7 @@ class ConfSolv(nn.Module):
             num_layers=2
         )
 
-    def forward(self, data):
+    def forward(self, data, max_confs=10):
         # torch.autograd.set_detect_anomaly(True)
         x_solvent, edge_index_solvent, edge_attr_solvent, mol_attr_solvent, solvent_batch, solute_confs_batch = \
             data.x_solvent, data.edge_index_solvent, data.edge_attr_solvent, data.mol_attr_solvent, data.x_solvent_batch, data.solute_confs_batch
@@ -120,34 +119,34 @@ class ConfSolv(nn.Module):
 
         if self.relative_model and self.diff_type == 'atom_diff':
             # don't sum over atoms in solute model
-            solute_confs_mask = data.solute_mask.view(-1, self.max_confs).unsqueeze(-1) * \
-                                data.solute_mask.view(-1, self.max_confs).unsqueeze(-2)
+            solute_confs_mask = data.solute_mask.view(-1, max_confs).unsqueeze(-1) * \
+                                data.solute_mask.view(-1, max_confs).unsqueeze(-2)
             solute_confs_mask = solute_confs_mask.unsqueeze(-1).unsqueeze(-1)
 
             h2_atoms, h2_atoms_mask = tg.utils.to_dense_batch(h2_, solute_confs_batch)
-            h2_atoms_reshaped = h2_atoms.view(solvent_batch.max() + 1, self.max_confs, -1, self.solute_hidden_dim)
-            h2_atoms_mask = h2_atoms_mask.view(solvent_batch.max() + 1, self.max_confs, 1, -1, 1)
+            h2_atoms_reshaped = h2_atoms.view(solvent_batch.max() + 1, max_confs, -1, self.solute_hidden_dim)
+            h2_atoms_mask = h2_atoms_mask.view(solvent_batch.max() + 1, max_confs, 1, -1, 1)
             h2_atoms_diff = (h2_atoms_reshaped.unsqueeze(-3) - h2_atoms_reshaped.unsqueeze(
                 -4)) * h2_atoms_mask * solute_confs_mask  # added
             h2 = self.ffn1(h2_atoms_diff.sum(dim=-2))
-            h1 = h1.unsqueeze(-2).unsqueeze(-2).repeat(1, self.max_confs, self.max_confs, 1)
+            h1 = h1.unsqueeze(-2).unsqueeze(-2).repeat(1, max_confs, max_confs, 1)
 
         else:
             if self.solute_model_type != 'SphereNet':
                 h2_ = scatter(h2_, solute_confs_batch, dim=0, reduce="add")
             h2 = torch.where(data.solute_mask.unsqueeze(-1) == False, torch.tensor([0.], device=h1.device), h2_)
-            h1 = torch.repeat_interleave(h1, self.max_confs, dim=0)
+            h1 = torch.repeat_interleave(h1, max_confs, dim=0)
 
         h = torch.cat([h1, h2], dim=-1)
 
         if self.relative_model:
-            mask_ = data.solute_mask.view(solvent_batch.max() + 1, self.max_confs)
+            mask_ = data.solute_mask.view(solvent_batch.max() + 1, max_confs)
             mask = mask_.unsqueeze(-2) * mask_.unsqueeze(-1)
         else:
             mask = data.solute_mask
 
         if self.relative_model and self.diff_type == 'mol_diff':
-            h_reshaped = h.view(solvent_batch.max() + 1, self.max_confs, -1)
+            h_reshaped = h.view(solvent_batch.max() + 1, max_confs, -1)
             f1 = h_reshaped.unsqueeze(-2) - h_reshaped.unsqueeze(-3)
             f2 = h_reshaped.unsqueeze(-3) - h_reshaped.unsqueeze(-2)
             g = torch.squeeze(self.ffn(f1) - self.ffn(f2), -1)

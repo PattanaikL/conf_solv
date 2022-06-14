@@ -18,9 +18,10 @@ class LitConfSolvModule(pl.LightningModule):
         self.relative_model = config["relative_model"]
         self.max_confs = config["max_confs"]
         self.debug = config["debug"]
+        self.max_confs = config["max_confs"]
 
-    def forward(self, data):
-        return self.model(data)
+    def forward(self, data, max_confs):
+        return self.model(data, max_confs)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
@@ -28,20 +29,20 @@ class LitConfSolvModule(pl.LightningModule):
                                                                patience=5, min_lr=self.lr / 100)
         return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val_loss"}
 
-    def _step(self, data, batch_idx, mode):
-        out = self(data)
+    def _step(self, data, max_confs, batch_idx, mode):
+        out = self(data, max_confs)
 
         if self.relative_loss:
-            y = data.y.view(-1, self.max_confs).unsqueeze(-1) - \
-                data.y.view(-1, self.max_confs).unsqueeze(-2)
-            mask = data.solute_mask.view(-1, self.max_confs).unsqueeze(-1) * \
-                   data.solute_mask.view(-1, self.max_confs).unsqueeze(-2)
+            y = data.y.view(-1, max_confs).unsqueeze(-1) - \
+                data.y.view(-1, max_confs).unsqueeze(-2)
+            mask = data.solute_mask.view(-1, max_confs).unsqueeze(-1) * \
+                   data.solute_mask.view(-1, max_confs).unsqueeze(-2)
             mask = torch.stack([m.fill_diagonal_(False) for m in mask])
 
             y = y * mask
             if not self.relative_model:
-                out = out.view(-1, self.max_confs).unsqueeze(-1) - \
-                      out.view(-1, self.max_confs).unsqueeze(-2)
+                out = out.view(-1, max_confs).unsqueeze(-1) - \
+                      out.view(-1, max_confs).unsqueeze(-2)
             out = out * mask
 
             # divide by all non-zero entries (non-diagonal true entries in mask)
@@ -65,15 +66,19 @@ class LitConfSolvModule(pl.LightningModule):
         self.log(f'{mode}_rmse', rmse, batch_size=batch_size)
         self.log(f'{mode}_mae', mae, batch_size=batch_size)
 
-        return loss
+        return {'loss': loss, 'preds': pred.detach(), 'target': unscaled_y.detach()}
 
     def training_step(self, data, batch_idx):
-        loss = self._step(data, batch_idx, mode="train")
-        return loss
+        loss_dict = self._step(data, self.max_confs, batch_idx, mode="train")
+        return loss_dict
 
     def validation_step(self, data, batch_idx):
-        loss = self._step(data, batch_idx, mode="val")
-        return loss
+        loss_dict = self._step(data, self.max_confs, batch_idx, mode="val")
+        return loss_dict
+
+    def test_step(self, data, batch_idx):
+        loss_dict = self._step(data, len(data.y), batch_idx, mode="test")
+        return loss_dict
     
     def on_save_checkpoint(self, checkpoint) -> None:
         "Objects to include in checkpoint file"
