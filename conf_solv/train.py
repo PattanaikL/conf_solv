@@ -98,6 +98,32 @@ def train_conf_solv(config):
     df_test_info = pd.DataFrame(test_dict_info)
     df_test_info.to_csv(os.path.join(f"{config['log_dir']}", 'test_predictions.csv'), index=False)
 
+    # group the test errors by solvent
+    stats_dict = {'solvent': df_test_info.solvent.unique().tolist(),
+                  'MAE (kJ/mol)': [],
+                  'RMSE (kJ/mol)': [],
+                 }
+    for solvent in stats_dict['solvent']:
+        df_tmp = df_test_info[df_test_info.solvent == solvent]
+        preds = df_tmp['dG_pred (kJ/mol)'].values
+        true = df_tmp['dG_true (kJ/mol)'].values
+        
+        rmse = np.sqrt(sum((preds - true)**2) / len(true))
+        mae = np.abs(preds - true).sum() / len(true)
+        stats_dict['MAE (kJ/mol)'].append(mae)
+        stats_dict['RMSE (kJ/mol)'].append(rmse)
+
+    preds = df_test_info['dG_pred (kJ/mol)'].values
+    true = df_test_info['dG_true (kJ/mol)'].values
+    rmse = np.sqrt(sum((preds - true)**2) / len(true))
+    mae = np.abs(preds - true).sum() / len(true)
+
+    stats_dict['solvent'].append('Overall')
+    stats_dict['MAE (kJ/mol)'].append(mae)
+    stats_dict['RMSE (kJ/mol)'].append(rmse)
+    df_stats = pd.DataFrame(stats_dict)
+    df_stats.to_csv(os.path.join(f"{config['log_dir']}", 'test_stats.csv'), index=False)
+
 
 if __name__ == "__main__":
     parser = ArgumentParser()
