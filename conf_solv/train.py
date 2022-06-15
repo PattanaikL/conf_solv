@@ -6,13 +6,15 @@ from pytorch_lightning.loggers import NeptuneLogger
 from pytorch_lightning.profiler import PyTorchProfiler
 from conf_solv.dataloaders.loader import SolventData3DModule
 from conf_solv.trainer import LitConfSolvModule
+import sys
 
 import os
 from argparse import ArgumentParser
 
-import resource  # for ancdata error
-rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
-resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
+if 'linux' in sys.platform:
+    import resource  # for ancdata error
+    rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
+    resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
 
 
 def train_conf_solv(config):
