@@ -85,8 +85,16 @@ def train_conf_solv(config):
         normalized_coeff = data_batch.solute_mask.sum()
         assert normalized_coeff == len(unscaled_preds)
         
-        unscaled_preds_all = torch.cat((unscaled_preds_all, unscaled_preds))
-        y_true_all = torch.cat((y_true_all, y_true))
+        # make sure that the lowest energy conf is labeled as energy 0
+        lowest_idx = y_true.argmin()
+        y_true_0_offset = y_true - y_true[lowest_idx]
+        
+        # make sure that the lowest energy conf is labeled as energy 0
+        lowest_idx = unscaled_preds.argmin()
+        unscaled_preds_0_offset = unscaled_preds - unscaled_preds[lowest_idx]
+
+        unscaled_preds_all = torch.cat((unscaled_preds_all, unscaled_preds_0_offset))
+        y_true_all = torch.cat((y_true_all, y_true_0_offset))
                 
         for i, conf_id in enumerate(data_batch.conf_ids[0]):
             test_dict_info['mol_id'].append(data_batch.mol_id[0])
