@@ -7,6 +7,7 @@ from pytorch_lightning.profiler import PyTorchProfiler
 from conf_solv.dataloaders.loader import SolventData3DModule
 from conf_solv.trainer import LitConfSolvModule
 import sys
+import torch
 
 import os
 from argparse import ArgumentParser
