@@ -8,6 +8,7 @@ from conf_solv.dataloaders.loader import SolventData3DModule
 from conf_solv.trainer import LitConfSolvModule
 import sys
 import torch
+import pandas as pd
 
 import os
 from argparse import ArgumentParser
