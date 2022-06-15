@@ -113,19 +113,25 @@ class SolventData3D(Dataset):
 
         if self.mode == 'train':  # random sampling during training
             conf_ids = random.sample(list(available_confs), min(self.max_confs, len(available_confs)))
-        else:  # pick first confs (should be low energy ones)
+            max_confs = self.max_confs
+        elif self.mode == 'val':  # pick first confs (should be low energy ones)
             conf_ids = sample_energy_confs[np.in1d(sample_energy_confs, available_confs)][:min(self.max_confs, len(available_confs))]
-
+            max_confs = self.max_confs
+        elif self.mode =='test':
+            conf_ids = sample_energy_confs[np.in1d(sample_energy_confs, available_confs)][:min(200, len(available_confs))]
+            max_confs = len(conf_ids)
         mols = sample_coords.loc[conf_ids]['mol'].values
         dG = torch.tensor(sample_energies.loc[(mol_id, conf_ids, slice(None))]["dG"].values, dtype=torch.float)
 
         solvent_molgraph = MolGraph(solvent_smi)
-        pair_data = create_pairdata(solvent_molgraph, mols, self.max_confs)
+        pair_data = create_pairdata(solvent_molgraph, mols, max_confs)
 
-        pair_data.y = torch.zeros([self.max_confs])
+        pair_data.y = torch.zeros([max_confs])
         scaled_y = self.scaler.transform(dG.reshape(-1, 1))
         pair_data.y[:len(scaled_y)] = scaled_y.reshape(-1)
         pair_data.mol_id = mol_id
+        pair_data.solvent_name = SOLVENTS_REVERSE[solvent_smi]
+        pair_data.conf_ids = conf_ids
 
         return pair_data
 
@@ -196,6 +202,17 @@ class SolventData3DModule(pl.LightningDataModule):
         return DataLoader(
             dataset=test_dataset,
             batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=self.num_workers,
+            follow_batch=["x_solvent", "x_solute"],
+            pin_memory=True,
+        )
+
+    def test_dataloader(self):
+        test_dataset = SolventData3D(self.config, self.coords_df, self.energies_df, self.split, self.scaler, mode="test")
+        return DataLoader(
+            dataset=test_dataset,
+            batch_size=1,
             shuffle=False,
             num_workers=self.num_workers,
             follow_batch=["x_solvent", "x_solute"],

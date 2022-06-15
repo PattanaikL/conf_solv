@@ -63,6 +63,39 @@ def train_conf_solv(config):
 
     trainer.fit(model=model, datamodule=solvation_data)
 
+    # get predictions on the test set
+    predictions_all_batches = trainer.predict(ckpt_path='best')
+    scaler = trainer.datamodule.scaler
+
+    unscaled_preds_all = torch.tensor([])
+    y_true_all = torch.tensor([])
+    test_dict_info = {'mol_id': [], 
+                      'conf_id': [],
+                      'solvent': [], 
+                      'dG_pred (kJ/mol)': [],
+                      'dG_true (kJ/mol)': [],
+                     }
+    # iterate over the batches
+    for data_batch, preds_batch in zip(solvation_data.predict_dataloader(), predictions_all_batches):
+        preds = preds_batch['preds'].squeeze()
+        y_true = data_batch.y
+        unscaled_preds = scaler.inverse_transform(preds)
+        normalized_coeff = data_batch.solute_mask.sum()
+        assert normalized_coeff == len(unscaled_preds)
+        
+        unscaled_preds_all = torch.cat((unscaled_preds_all, unscaled_preds))
+        y_true_all = torch.cat((y_true_all, y_true))
+                
+        for i, conf_id in enumerate(data_batch.conf_ids[0]):
+            test_dict_info['mol_id'].append(data_batch.mol_id[0])
+            test_dict_info['solvent'].append(data_batch.solvent_name[0])    
+            test_dict_info['conf_id'].append(conf_id)
+    
+    test_dict_info['dG_pred (kJ/mol)'] = unscaled_preds_all.detach().numpy()
+    test_dict_info['dG_true (kJ/mol)'] = y_true_all.detach().numpy()
+    df_test_info = pd.DataFrame(test_dict_info)
+    df_test_info.to_csv(os.path.join(f"{config['log_dir']}", 'test_predictions.csv'), index=False)
+
 
 if __name__ == "__main__":
     parser = ArgumentParser()

@@ -62,9 +62,11 @@ class LitConfSolvModule(pl.LightningModule):
         mae = torch.abs(pred-unscaled_y).sum() / normalized_coeff
 
         # logs
-        self.log(f'{mode}_loss', loss, batch_size=batch_size)
-        self.log(f'{mode}_rmse', rmse, batch_size=batch_size)
-        self.log(f'{mode}_mae', mae, batch_size=batch_size)
+        if mode != 'predict':
+            # Logging is disabled in the predict hooks
+            self.log(f'{mode}_loss', loss, batch_size=batch_size)
+            self.log(f'{mode}_rmse', rmse, batch_size=batch_size)
+            self.log(f'{mode}_mae', mae, batch_size=batch_size)
 
         return {'loss': loss, 'preds': pred.detach(), 'target': unscaled_y.detach()}
 
@@ -78,6 +80,10 @@ class LitConfSolvModule(pl.LightningModule):
 
     def test_step(self, data, batch_idx):
         loss_dict = self._step(data, len(data.y), batch_idx, mode="test")
+        return loss_dict
+
+    def predict_step(self, data, batch_idx):
+        loss_dict = self._step(data, len(data.y), batch_idx, mode="predict")
         return loss_dict
     
     def on_save_checkpoint(self, checkpoint) -> None:
