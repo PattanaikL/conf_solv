@@ -168,8 +168,8 @@ class SolventData3DModule(pl.LightningDataModule):
             self.scaler.fit(torch.from_numpy(dG_train.reshape(-1, 1)))
 
         elif config["scaler_type"] == "min_max":
-            self.scaler = TorchMinMaxScaler()
-            self.scaler.fit(dG_train.reshape(-1, 1))
+            self.scaler = TorchMinMaxScaler(feature_range=(0, 1))
+            self.scaler.fit(torch.from_numpy(dG_train.reshape(-1, 1)))
         else:
             self.scaler = TorchStandardScaler()
             self.scaler.mean = torch.tensor(0.)

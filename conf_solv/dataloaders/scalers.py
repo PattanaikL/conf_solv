@@ -61,13 +61,13 @@ class TorchMinMaxScaler(nn.Module):
         self.scale = 1.0 / self.dist
     def transform(self,tensor):  
         a, b = self.feature_range 
-        tensor.mul_(self.scale).sub_(tensor.min(dim=0, keepdim=True)[0])
-        tensor.mul_(b - a).add_(a)
+        tensor = tensor.sub(tensor.min(dim=0, keepdim=True)[0]).mul(self.scale)
+        tensor = tensor.mul(b - a).add(a)
         return tensor
     def inverse_transform(self,tensor):
         a, b = self.feature_range 
-        tensor.sub_(a).div_(b - a)
-        tensor.add_(tensor.min(dim=0, keepdim=True)[0]).div_(self.scale)   
-        tensor.add_(self.min[0])     
+        tensor = tensor.sub(a).div(b - a)
+        tensor = tensor.div(self.scale).add(tensor.min(dim=0, keepdim=True)[0])  
+        tensor = tensor.add(self.min[0])     
         return tensor
 

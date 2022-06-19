@@ -11,7 +11,7 @@ import sys
 import os
 from argparse import ArgumentParser
 
-from .utils.inference_utils import save_predictions
+from conf_solv.utils.inference_utils import save_predictions
 
 if 'linux' in sys.platform:
     import resource  # for ancdata error
