@@ -55,7 +55,7 @@ class LitConfSolvModule(pl.LightningModule):
         loss = F.mse_loss(out, y,  reduction="sum") / normalized_coeff
 
         batch_size = len(data.mol_id)
-        scaler = self.trainer.datamodule.scaler
+        scaler = self.trainer.datamodule.scaler.to(self.device)
         pred = scaler.inverse_transform(out.view(-1, 1))
         unscaled_y = scaler.inverse_transform(y.view(-1, 1))
         rmse = torch.sqrt(torch.sum((pred-unscaled_y)**2) / normalized_coeff)
