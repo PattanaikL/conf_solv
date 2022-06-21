@@ -127,8 +127,7 @@ class SolventData3D(Dataset):
         pair_data = create_pairdata(solvent_molgraph, mols, max_confs)
 
         pair_data.y = torch.zeros([max_confs])
-        scaled_y = self.scaler.transform(dG.reshape(-1, 1))
-        pair_data.y[:len(scaled_y)] = scaled_y.reshape(-1)
+        pair_data.y[:len(dG)] = dG
         pair_data.mol_id = mol_id
         pair_data.solvent_name = SOLVENTS_REVERSE[solvent_smi]
         pair_data.conf_ids = conf_ids
@@ -163,9 +162,10 @@ class SolventData3DModule(pl.LightningDataModule):
         self.node_dim, self.edge_dim = self.get_dims()
 
         dG_train = self.energies_df["dG"][self.energies_df.index.isin(self.split[0])].values
+        dG_train = np.concatenate([dG_train, -dG_train])  # dG is relative; allow for negatives
         if config["scaler_type"] == "standard":
             self.scaler = TorchStandardScaler()
-            self.scaler.fit(torch.from_numpy(dG_train.reshape(-1, 1)))
+            self.scaler.fit(torch.from_numpy(dG_train.ravel()))
 
         elif config["scaler_type"] == "min_max":
             self.scaler = TorchMinMaxScaler(feature_range=(0, 1))

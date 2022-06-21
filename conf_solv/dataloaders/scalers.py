@@ -8,18 +8,18 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 class TorchStandardScaler(nn.Module):
     def fit(self, x):
-        mean = x.mean(dim=0, keepdim=True)
-        std = x.std(dim=0, unbiased=False, keepdim=True)
+        mean = x.mean()
+        std = x.std()
         self.register_buffer('mean', mean)
         self.register_buffer('std', std)
 
     def transform(self, x):
         x = x - self.mean
-        x = x / (self.std + 1e-7)
+        x = x / (self.std + 1e-11)
         return x
 
-    def inverse_transform(self,x):
-        x = x * (self.std + 1e-7)
+    def inverse_transform(self, x):
+        x = x * (self.std + 1e-11)
         x = x + self.mean
         return x
 
@@ -57,8 +57,8 @@ class TorchMinMaxScaler(nn.Module):
 
         # Feature range
         
-        max = tensor.max(dim=0, keepdim=True)[0]
-        min = tensor.min(dim=0, keepdim=True)[0]
+        max = tensor.max()
+        min = tensor.min()
         dist = max - min
         dist[dist == 0.0] = 1.0
         scale = 1.0 / dist
@@ -68,14 +68,13 @@ class TorchMinMaxScaler(nn.Module):
 
     def transform(self, tensor):
         a, b = self.feature_range 
-        tensor = tensor.sub(tensor.min(dim=0, keepdim=True)[0]).mul(self.scale)
+        tensor = tensor.sub(self.min).mul(self.scale)
         tensor = tensor.mul(b - a).add(a)
         return tensor
 
     def inverse_transform(self, tensor):
         a, b = self.feature_range 
         tensor = tensor.sub(a).div(b - a)
-        tensor = tensor.div(self.scale).add(tensor.min(dim=0, keepdim=True)[0])  
-        tensor = tensor.add(self.min[0])     
+        tensor = tensor.div(self.scale).add(self.min)
         return tensor
 

@@ -31,6 +31,7 @@ class LitConfSolvModule(pl.LightningModule):
 
     def _step(self, data, max_confs, batch_idx, mode):
         out = self(data, max_confs)
+        scaler = self.trainer.datamodule.scaler.to(self.device)
 
         if self.relative_loss:
             y = data.y.view(-1, max_confs).unsqueeze(-1) - \
@@ -39,27 +40,26 @@ class LitConfSolvModule(pl.LightningModule):
                    data.solute_mask.view(-1, max_confs).unsqueeze(-2)
             mask = torch.stack([m.fill_diagonal_(False) for m in mask])
 
-            y = y * mask
             if not self.relative_model:
                 out = out.view(-1, max_confs).unsqueeze(-1) - \
                       out.view(-1, max_confs).unsqueeze(-2)
-            out = out * mask
 
             # divide by all non-zero entries (non-diagonal true entries in mask)
             normalized_coeff = mask.sum()
 
         else:
-            y = data.y * data.solute_mask
+            mask = data.solute_mask
             normalized_coeff = data.solute_mask.sum()
 
-        loss = F.mse_loss(out, y,  reduction="sum") / normalized_coeff
+        y = y * mask
+        scaled_y = scaler.transform(y) * mask
+        out = out * mask
+        pred = scaler.inverse_transform(out) * mask
 
+        loss = F.mse_loss(out, scaled_y,  reduction="sum") / normalized_coeff
         batch_size = len(data.mol_id)
-        scaler = self.trainer.datamodule.scaler.to(self.device)
-        pred = scaler.inverse_transform(out.view(-1, 1))
-        unscaled_y = scaler.inverse_transform(y.view(-1, 1))
-        rmse = torch.sqrt(torch.sum((pred-unscaled_y)**2) / normalized_coeff)
-        mae = torch.abs(pred-unscaled_y).sum() / normalized_coeff
+        rmse = torch.sqrt(torch.sum((pred-y)**2) / normalized_coeff)
+        mae = torch.abs(pred-y).sum() / normalized_coeff
 
         # logs
         if mode != 'predict':
@@ -68,7 +68,7 @@ class LitConfSolvModule(pl.LightningModule):
             self.log(f'{mode}_rmse', rmse, batch_size=batch_size)
             self.log(f'{mode}_mae', mae, batch_size=batch_size)
 
-        return {'loss': loss, 'preds': pred.detach(), 'target': unscaled_y.detach()}
+        return {'loss': loss, 'preds': pred.detach(), 'target': y.detach()}
 
     def training_step(self, data, batch_idx):
         loss_dict = self._step(data, self.max_confs, batch_idx, mode="train")
