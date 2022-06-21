@@ -34,6 +34,7 @@ class TorchMinMaxScaler(nn.Module):
     """
 
     def __init__(self, **kwargs):
+        super().__init__()
         self.__dict__.update(kwargs)
 
     def fit(self, tensor):
@@ -59,12 +60,14 @@ class TorchMinMaxScaler(nn.Module):
         self.dist = self.max - self.min
         self.dist[self.dist == 0.0] = 1.0
         self.scale = 1.0 / self.dist
-    def transform(self,tensor):  
+
+    def transform(self, tensor):
         a, b = self.feature_range 
         tensor = tensor.sub(tensor.min(dim=0, keepdim=True)[0]).mul(self.scale)
         tensor = tensor.mul(b - a).add(a)
         return tensor
-    def inverse_transform(self,tensor):
+
+    def inverse_transform(self, tensor):
         a, b = self.feature_range 
         tensor = tensor.sub(a).div(b - a)
         tensor = tensor.div(self.scale).add(tensor.min(dim=0, keepdim=True)[0])  
