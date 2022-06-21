@@ -8,8 +8,10 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 class TorchStandardScaler(nn.Module):
     def fit(self, x):
-        self.mean = x.mean(dim=0, keepdim=True)
-        self.std = x.std(dim=0, unbiased=False, keepdim=True)
+        mean = x.mean(dim=0, keepdim=True)
+        std = x.std(dim=0, unbiased=False, keepdim=True)
+        self.register_buffer('mean', mean)
+        self.register_buffer('std', std)
 
     def transform(self, x):
         x = x - self.mean
@@ -55,11 +57,14 @@ class TorchMinMaxScaler(nn.Module):
 
         # Feature range
         
-        self.max = tensor.max(dim=0, keepdim=True)[0]
-        self.min = tensor.min(dim=0, keepdim=True)[0]
-        self.dist = self.max - self.min
-        self.dist[self.dist == 0.0] = 1.0
-        self.scale = 1.0 / self.dist
+        max = tensor.max(dim=0, keepdim=True)[0]
+        min = tensor.min(dim=0, keepdim=True)[0]
+        dist = max - min
+        dist[dist == 0.0] = 1.0
+        scale = 1.0 / dist
+
+        self.register_buffer('min', min)
+        self.register_buffer('scale', scale)
 
     def transform(self, tensor):
         a, b = self.feature_range 
