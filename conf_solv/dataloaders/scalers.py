@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 class TorchStandardScaler(nn.Module):
     def fit(self, x):
         mean = x.mean()
-        std = x.std()
+        std = x.std(unbiased=False)
         self.register_buffer('mean', mean)
         self.register_buffer('std', std)
 
