@@ -6,14 +6,14 @@ import torch
 from conf_solv.dataloaders.features import SOLVENTS_REVERSE
 
 
-def save_predictions(model, dataloader, scaler, config):
+def save_predictions(model, dataloader, scaler, save_dir):
     """
     Saves the test set predictions to a csv.
 
     :param model: Model
     :param dataloader: Dataloader that stores true values for the test set
     :param scaler: Scaler that was fit to the training data. Used to unscale the predictions
-    :param config: configuration dictionary
+    :param save_dir: Directory where we save the predictions
     :return: None
     """
     solvent = dataloader.dataset.solvent
@@ -53,7 +53,7 @@ def save_predictions(model, dataloader, scaler, config):
     test_dict_info['dG_pred (kJ/mol)'] = unscaled_preds_all.detach().numpy()
     test_dict_info['dG_true (kJ/mol)'] = y_true_all.detach().numpy()
     df_test_info = pd.DataFrame(test_dict_info)
-    df_test_info.to_csv(os.path.join(f"{config['log_dir']}", f'{solvent_name}_test_predictions.csv'), index=False)
+    df_test_info.to_csv(os.path.join(save_dir, f'{solvent_name}_test_predictions.csv'), index=False)
 
     # group the test errors by solvent
     stats_dict = {
@@ -71,4 +71,4 @@ def save_predictions(model, dataloader, scaler, config):
     stats_dict['RMSE (kJ/mol)'].append(rmse)
 
     df_stats = pd.DataFrame(stats_dict)
-    df_stats.to_csv(os.path.join(f"{config['log_dir']}", f'{solvent_name}_test_stats.csv'), index=False)
+    df_stats.to_csv(os.path.join(save_dir, f'{solvent_name}_test_stats.csv'), index=False)

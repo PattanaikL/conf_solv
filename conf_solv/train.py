@@ -76,7 +76,7 @@ def train_conf_solv(config):
             model=model,
             dataloader=predict_dataloader,
             scaler=scaler,
-            config=config,
+            save_dir=config["log_dir"],
         )
 
 if __name__ == "__main__":
