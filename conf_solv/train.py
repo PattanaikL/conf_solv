@@ -12,6 +12,7 @@ import os
 from argparse import ArgumentParser
 
 from conf_solv.utils.inference_utils import save_predictions
+from conf_solv.dataloaders.features import SOLVENTS
 
 if 'linux' in sys.platform:
     import resource  # for ancdata error
@@ -66,13 +67,17 @@ def train_conf_solv(config):
     trainer.fit(model=model, datamodule=solvation_data)
 
     # get predictions on the test set
-    predictions_all_batches = trainer.predict(ckpt_path='best')
     scaler = trainer.datamodule.scaler
-    save_predictions(predictions=predictions_all_batches,
-                     dataloader=solvation_data.predict_dataloader(),
-                     scaler=scaler,
-                     config=config,
-                     )
+    for solvent in list(SOLVENTS.keys())[1:]:
+        predict_dataloader = solvation_data.predict_dataloader()
+        predict_dataloader.dataset.solvent = SOLVENTS[solvent]
+        # predictions_all_batches = trainer.predict(model=model, dataloaders=predict_dataloader)
+        save_predictions(
+            model=model,
+            dataloader=predict_dataloader,
+            scaler=scaler,
+            config=config,
+        )
 
 if __name__ == "__main__":
     parser = ArgumentParser()
