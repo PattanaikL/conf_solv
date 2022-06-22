@@ -31,7 +31,11 @@ class LitConfSolvModule(pl.LightningModule):
 
     def _step(self, data, max_confs, batch_idx, mode):
         out = self(data, max_confs)
-        scaler = self.trainer.datamodule.scaler.to(self.device)
+
+        try:
+            scaler = self.trainer.datamodule.scaler.to(self.device)
+        except AttributeError:
+            scaler = self.scaler.to(self.device)
 
         if self.relative_loss:
             y = data.y.view(-1, max_confs).unsqueeze(-1) - \
