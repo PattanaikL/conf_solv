@@ -208,7 +208,7 @@ class SolventData3DModule(pl.LightningDataModule):
             pin_memory=True,
         )
 
-    def test_dataloader(self):
+    def predict_dataloader(self):
         test_dataset = SolventData3D(self.config, self.coords_df, self.energies_df, self.split, self.scaler, mode="test")
         return DataLoader(
             dataset=test_dataset,
