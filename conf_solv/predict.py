@@ -1,4 +1,5 @@
 import os
+import sys
 from argparse import ArgumentParser
 
 from pytorch_lightning import seed_everything
@@ -6,6 +7,11 @@ from conf_solv.dataloaders.loader import SolventData3DModule
 from conf_solv.trainer import LitConfSolvModule
 from conf_solv.utils.inference_utils import save_predictions
 from conf_solv.dataloaders.features import SOLVENTS
+
+if 'linux' in sys.platform:
+    import resource  # for ancdata error
+    rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
+    resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
 
 
 def predict_conf_solv(config):
