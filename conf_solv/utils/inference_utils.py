@@ -30,7 +30,7 @@ def save_predictions(model, dataloader, scaler, save_dir):
     # iterate over the batches
     for i, data_batch in enumerate(tqdm(dataloader, desc=f'{solvent_name}', total=len(dataloader))):
         preds_batch = model._step(data_batch, len(data_batch.y), i, mode="predict")
-        preds = preds_batch['preds'].squeeze(dim=0)[0]
+        preds = preds_batch['preds'].squeeze(dim=0)[:, 0]
         y_true = data_batch.y
         unscaled_preds = scaler.inverse_transform(preds)
 
