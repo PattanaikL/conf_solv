@@ -18,15 +18,14 @@ def predict_conf_solv(config):
     )
 
     # get predictions on the test set
-    scaler = model.scaler
     for solvent in list(SOLVENTS.keys())[1:]:
         predict_dataloader = solvation_data.predict_dataloader()
         predict_dataloader.dataset.solvent = SOLVENTS[solvent]
         save_predictions(
             model=model,
             dataloader=predict_dataloader,
-            scaler=scaler,
             save_dir=config["trained_model_dir"],
+            n_jobs=config["n_jobs"]
         )
 
 
@@ -34,5 +33,6 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser = LitConfSolvModule.add_args(parser)
     parser.add_argument('--trained_model_dir', type=str)
+    parser.add_argument('--n_jobs', type=int, default=1)
     args = parser.parse_args()
     predict_conf_solv(vars(args))

@@ -3,57 +3,67 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import torch
+from joblib import Parallel, delayed
 from conf_solv.dataloaders.features import SOLVENTS_REVERSE
 
 
+def make_predictions(model, data_batch):
+    """
+    Make predictions on a single batch (used for parallelization)
+
+    :param model: ConfSolv model used to make predictions
+    :param data_batch: Instance of batch data on which to make predictions
+    :return: DataFrame of relative dG predictions per conformer
+    """
+
+    torch.set_num_threads(1)
+    test_dict_info = {}
+    n_confs = len(data_batch.y)
+
+    preds_batch = model._step(data_batch, n_confs, 0, mode="predict")
+    preds = preds_batch['preds'].squeeze(dim=0)[:, 0]
+    y_true = data_batch.y
+    unscaled_preds = model.scaler.inverse_transform(preds)
+
+    # make sure that the lowest energy conf is labeled as energy 0
+    lowest_idx = y_true.argmin()
+    y_true_0_offset = y_true - y_true[lowest_idx]
+
+    # make sure that the lowest energy conf is labeled as energy 0
+    lowest_idx = unscaled_preds.argmin()
+    unscaled_preds_0_offset = unscaled_preds - unscaled_preds[lowest_idx]
+
+    # save to dict
+    test_dict_info['mol_id'] = [data_batch.mol_id[0]] * n_confs
+    test_dict_info['solvent'] = [data_batch.solvent_name[0]] * n_confs
+    test_dict_info['conf_id'] = data_batch.conf_ids[0]
+    test_dict_info['dG_pred (kJ/mol)'] = unscaled_preds_0_offset.numpy()
+    test_dict_info['dG_true (kJ/mol)'] = y_true_0_offset.numpy()
+
+    return pd.DataFrame(test_dict_info)
+
+
 @torch.no_grad()
-def save_predictions(model, dataloader, scaler, save_dir):
+def save_predictions(model, dataloader, save_dir, n_jobs=1):
     """
     Saves the test set predictions to a csv.
 
     :param model: Model
     :param dataloader: Dataloader that stores true values for the test set
-    :param scaler: Scaler that was fit to the training data. Used to unscale the predictions
-    :param save_dir: Directory where we save the predictions
+    :param n_jobs: How many jobs to run in parallel
     :return: None
     """
     solvent = dataloader.dataset.solvent
     solvent_name = SOLVENTS_REVERSE[solvent]
-    unscaled_preds_all = torch.tensor([])
-    y_true_all = torch.tensor([])
-    test_dict_info = {
-        'mol_id': [],
-        'conf_id': [],
-        'solvent': [],
-        'dG_pred (kJ/mol)': [],
-        'dG_true (kJ/mol)': [],
-    }
+
     # iterate over the batches
-    for i, data_batch in enumerate(tqdm(dataloader, desc=f'{solvent_name}', total=len(dataloader))):
-        preds_batch = model._step(data_batch, len(data_batch.y), i, mode="predict")
-        preds = preds_batch['preds'].squeeze(dim=0)[:, 0]
-        y_true = data_batch.y
-        unscaled_preds = scaler.inverse_transform(preds)
+    test_dfs = Parallel(n_jobs=n_jobs, backend="loky", verbose=0)(
+        delayed(make_predictions)(model, data_batch) for data_batch in tqdm(
+            dataloader, desc=f'{solvent_name}', total=len(dataloader)
+        )
+    )
 
-        # make sure that the lowest energy conf is labeled as energy 0
-        lowest_idx = y_true.argmin()
-        y_true_0_offset = y_true - y_true[lowest_idx]
-        
-        # make sure that the lowest energy conf is labeled as energy 0
-        lowest_idx = unscaled_preds.argmin()
-        unscaled_preds_0_offset = unscaled_preds - unscaled_preds[lowest_idx]
-
-        unscaled_preds_all = torch.cat((unscaled_preds_all, unscaled_preds_0_offset))
-        y_true_all = torch.cat((y_true_all, y_true_0_offset))
-                
-        for i, conf_id in enumerate(data_batch.conf_ids[0]):
-            test_dict_info['mol_id'].append(data_batch.mol_id[0])
-            test_dict_info['solvent'].append(data_batch.solvent_name[0])    
-            test_dict_info['conf_id'].append(conf_id)
-    
-    test_dict_info['dG_pred (kJ/mol)'] = unscaled_preds_all.detach().numpy()
-    test_dict_info['dG_true (kJ/mol)'] = y_true_all.detach().numpy()
-    df_test_info = pd.DataFrame(test_dict_info)
+    df_test_info = pd.concat(test_dfs)
     df_test_info.to_csv(os.path.join(save_dir, f'{solvent_name}_test_predictions.csv'), index=False)
 
     # group the test errors by solvent
