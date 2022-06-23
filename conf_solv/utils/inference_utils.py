@@ -6,6 +6,7 @@ import torch
 from conf_solv.dataloaders.features import SOLVENTS_REVERSE
 
 
+@torch.no_grad()
 def save_predictions(model, dataloader, scaler, save_dir):
     """
     Saves the test set predictions to a csv.
