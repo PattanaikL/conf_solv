@@ -10,6 +10,7 @@ from .schnet import SchNet
 from .dimenet_pp import DimeNetPlusPlus
 from .spherenet import SphereNet
 from .painn import PaiNN
+from .egnn import EGNN
 
 
 class ConfSolv(nn.Module):
@@ -92,6 +93,8 @@ class ConfSolv(nn.Module):
                 num_radial=config["num_radial"],
                 num_interactions=config["num_blocks"],
             )
+        elif self.solute_model_type == "EGNN":
+            self.solute_model = EGNN(config)
 
         self.ffn = MLP(
             in_dim=config["solvent_hidden_dim"] + config["solute_hidden_dim"],
