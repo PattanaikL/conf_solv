@@ -78,8 +78,8 @@ class SolventData3D(Dataset):
         self.solvent = config["solvent"]
 
         energies = energies_df[energies_df['mol_id'].isin(self.split)]
-        energies = energies[energies['dG'] < config["threshold"]]
-        self.energies = energies.dropna(subset=['dG'])
+        energies = energies[energies['dG(solution)'] < config["threshold"]]
+        self.energies = energies.dropna(subset=['dG(solution)'])
 
         coords = coords_df[coords_df['mol_id'].isin(self.split)]
         self.mol_ids = list(set(list(coords['mol_id'].unique())).intersection(set(list(self.energies['mol_id'].unique()))))
@@ -121,7 +121,7 @@ class SolventData3D(Dataset):
             conf_ids = sample_energy_confs[np.in1d(sample_energy_confs, available_confs)][:min(200, len(available_confs))]
             max_confs = len(conf_ids)
         mols = sample_coords.loc[conf_ids]['mol'].values
-        dG = torch.tensor(sample_energies.loc[(mol_id, conf_ids, slice(None))]["dG"].values, dtype=torch.float)
+        dG = torch.tensor(sample_energies.loc[(mol_id, conf_ids, slice(None))]['dG(solution)'].values, dtype=torch.float)
 
         solvent_molgraph = MolGraph(solvent_smi)
         pair_data = create_pairdata(solvent_molgraph, mols, max_confs)
@@ -161,7 +161,7 @@ class SolventData3DModule(pl.LightningDataModule):
         self.split = np.load(config["split_path"], allow_pickle=True)
         self.node_dim, self.edge_dim = self.get_dims()
 
-        dG_train = self.energies_df["dG"][self.energies_df.index.isin(self.split[0])].values
+        dG_train = self.energies_df['dG(solution)'][self.energies_df.index.isin(self.split[0])].values
         dG_train = np.concatenate([dG_train, -dG_train])  # dG is relative; allow for negatives
         if config["scaler_type"] == "standard":
             self.scaler = TorchStandardScaler()
