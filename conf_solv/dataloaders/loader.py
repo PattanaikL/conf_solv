@@ -184,6 +184,7 @@ class SolventData3DModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             follow_batch=["x_solvent", "x_solute"],
             pin_memory=True,
+            persistent_workers=True,
         )
 
     def val_dataloader(self):
@@ -195,6 +196,7 @@ class SolventData3DModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             follow_batch=["x_solvent", "x_solute"],
             pin_memory=True,
+            persistent_workers=True,
         )
 
     def test_dataloader(self):
@@ -206,6 +208,7 @@ class SolventData3DModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             follow_batch=["x_solvent", "x_solute"],
             pin_memory=True,
+            persistent_workers=True,
         )
 
     def predict_dataloader(self):
