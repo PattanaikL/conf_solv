@@ -23,7 +23,7 @@ class Collater:
             # create batch tensor for conformers
             solute_confs_batch = []
             counter = 0
-            max_confs = len(elem.y)
+            max_confs = len(elem.solute_mask)
             for n_atoms in batch_data.x_solute_batch.bincount():
                 for _ in range(max_confs):
                     solute_confs_batch.extend([counter] * n_atoms)
