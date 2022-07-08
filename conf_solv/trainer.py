@@ -184,6 +184,8 @@ class LitConfSolvModule(pl.LightningModule):
         parser.add_argument('--coords_path', type=str, default='data/debug/coords.pkl.gz')
         parser.add_argument('--energies_path', type=str, default='data/debug/free_energy.pkl.gz')
         parser.add_argument('--split_path', type=str, default='data/debug/split_0.npy')
+        parser.add_argument('--restart_path', type=str, default=None,
+                            help="Path to latest model .ckpt file")
         parser.add_argument('--seed', type=int, default=0)
         parser.add_argument('--verbose', action='store_true', default=False)
         parser.add_argument('--debug', action='store_true', default=False)

@@ -70,7 +70,7 @@ def train_conf_solv(config):
     if config["tune"]:
         trainer.tune(model=model, datamodule=solvation_data)
 
-    trainer.fit(model=model, datamodule=solvation_data)
+    trainer.fit(model=model, datamodule=solvation_data, ckpt_path=args.restart_path)
 
 
 if __name__ == "__main__":
