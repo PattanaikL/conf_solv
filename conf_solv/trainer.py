@@ -27,7 +27,7 @@ class LitConfSolvModule(pl.LightningModule):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.7,
                                                                patience=5, min_lr=self.lr / 100)
-        return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val_loss"}
+        return {"optimizer": optimizer, "scheduler": scheduler, "monitor": "val_loss"}
 
     def _step(self, data, max_confs, batch_idx, mode):
         out = self(data, max_confs)
