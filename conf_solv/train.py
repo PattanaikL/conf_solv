@@ -1,6 +1,6 @@
 from rdkit import Chem  # need to import this for some reason w pytorch lightning imports
 import pytorch_lightning as pl  # causing issues
-from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
+from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint, EarlyStopping
 from pytorch_lightning import seed_everything
 from pytorch_lightning.loggers import NeptuneLogger
 from pytorch_lightning.profiler import PyTorchProfiler
@@ -39,6 +39,11 @@ def train_conf_solv(config):
         save_top_k=3,
         save_weights_only=False
     )
+    nan_callback = EarlyStopping(
+        monitor="val_loss",
+        patience=20,
+        check_finite=True,
+    )
     neptune_logger = NeptuneLogger(
         project="lagnajit/conf-solv",
         api_token=os.environ["NEPTUNE_API_TOKEN"],
@@ -58,6 +63,7 @@ def train_conf_solv(config):
         callbacks=[LearningRateMonitor(),
                    checkpoint_callback,
                    latest_checkpoint_callback,
+                   nan_callback,
                    ],
         gradient_clip_val=10.0,
         profiler=PyTorchProfiler(dirpath=config["log_dir"]) if config["profile"] else None,
