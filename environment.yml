@@ -1,22 +1,23 @@
-name: ConfSolv
+name: conf_solv
 channels:
-  - pyg
-  - pytorch
-  - anaconda
-  - conda-forge
   - defaults
+  - rdkit
+  - schrodinger
+  - pytorch
+  - conda-forge
 dependencies:
-  - numpy
-  - rdkit==2021.03.1
-  - pytorch==1.11.0
-  - pytorch-geometric==2.0.4
-  - pytorch-lightning==1.6.1
-  - einops
-  - sympy
-  - openbabel
-  - cclib
-  - xtb-python
   - ase
-  - xtb==6.4.1
+  - cclib
   - crest
+  - einops
+  - jupyter
+  - matplotlib
+  - numpy
+  - openbabel
+  - pandas
   - py3dmol
+  - rdkit==2020.09.1
+  - scikit-learn
+  - scipy
+  - seaborn
+  - sympy
