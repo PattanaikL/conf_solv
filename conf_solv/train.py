@@ -36,7 +36,7 @@ def train_conf_solv(config):
         filename='latest_model_{epoch}',
         monitor="epoch",
         mode="max",
-        save_top_k=3,
+        save_top_k=-1,
         save_weights_only=False
     )
     nan_callback = EarlyStopping(
