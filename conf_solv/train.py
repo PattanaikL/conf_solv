@@ -31,6 +31,14 @@ def train_conf_solv(config):
         save_top_k=1,
         save_weights_only=True
     )
+    latest_checkpoint_callback = ModelCheckpoint(
+        dirpath=config["log_dir"],
+        filename='latest_model_{epoch}',
+        monitor="epoch",
+        mode="max",
+        save_top_k=3,
+        save_weights_only=False
+    )
     neptune_logger = NeptuneLogger(
         project="lagnajit/conf-solv",
         api_token=os.environ["NEPTUNE_API_TOKEN"],
@@ -49,6 +57,7 @@ def train_conf_solv(config):
         max_epochs=config["n_epochs"],
         callbacks=[LearningRateMonitor(),
                    checkpoint_callback,
+                   latest_checkpoint_callback,
                    ],
         gradient_clip_val=10.0,
         profiler=PyTorchProfiler(dirpath=config["log_dir"]) if config["profile"] else None,
