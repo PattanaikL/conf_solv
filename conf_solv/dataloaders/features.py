@@ -65,6 +65,17 @@ SOLVENTS = {'scf': 'scf',
             'Urea': 'NC(=O)N'
             }
 
+IONIC_SOLVENTS = [
+    'Acetat', 'Ammonium', 'Benzoat', 'Chloride', 'Diethanolammonium', 'Diethylenamin', 'Diethylenammonium',
+    'Ethylenamin', 'Ethylenammonium', 'Formiat', 'Methanolat', 'Tetraethylenammonium', 'Triethanolammonium',
+    'Triethylenamin', 'Triethylenammonium',
+]
+IONIC_SOLVENT_SMILES = [
+    'CC(=O)[O-]',  '[NH4+]', '[O-]C(=O)c1ccccc1', '[Cl-]', 'OCC[NH2+]CCO', 'CCNCC',
+    'CC[NH2+]CC', 'CCN', 'CC[NH3+]', 'C(=O)[O-]', 'C[O-]', 'CC[N+](CC)(CC)CC',
+    'OCC[NH+](CCO)CCO', 'CCN(CC)CC', 'CC[NH+](CC)CC'
+]
+
 SOLVENTS_REVERSE = {value: key for key, value in SOLVENTS.items()}
 SOLVENT_SMILES = list(SOLVENTS.values())[1:]
 
