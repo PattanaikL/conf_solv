@@ -52,6 +52,7 @@ class LitConfSolvModule(pl.LightningModule):
             normalized_coeff = mask.sum()
 
         else:
+            y = data.y
             mask = data.solute_mask
             normalized_coeff = data.solute_mask.sum()
 
