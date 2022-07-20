@@ -168,8 +168,10 @@ class SolventData3DModule(pl.LightningDataModule):
         self.split = np.load(config["split_path"], allow_pickle=True)
         self.node_dim, self.edge_dim = self.get_dims()
 
-        dG_train = self.energies_df[self.param_name][self.energies_df.index.isin(self.split[0])].values
-        dG_train = np.concatenate([dG_train, -dG_train])  # dG is relative; allow for negatives
+        dG_train = self.energies_df[self.param_name][self.energies_df["mol_id"].isin(self.split[0])].values
+        # dG is relative; allow for negatives
+        dG_train = np.concatenate([dG_train, -dG_train]) if config["relative_loss"] else dG_train
+
         if config["scaler_type"] == "standard":
             self.scaler = TorchStandardScaler()
             self.scaler.fit(torch.from_numpy(dG_train.ravel()))
