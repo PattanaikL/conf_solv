@@ -171,6 +171,7 @@ class LitConfSolvModule(pl.LightningModule):
         parser.add_argument('--threshold', type=int, default=100)
         parser.add_argument('--scaler_type', type=str, default=None)
         parser.add_argument('--no_ionic_solvents', action='store_true', default=False)
+        parser.add_argument('--param_name', type=str, default='dG(solution)')
 
         # debugging
         parser.add_argument('--profile', action='store_true', default=False)
