@@ -11,7 +11,7 @@ from torch_geometric.data import Data, Dataset
 from .collate import DataLoader
 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from .features import MolGraph, SOLVENTS, SOLVENTS_REVERSE
+from .features import MolGraph, SOLVENTS, SOLVENTS_REVERSE, IONIC_SOLVENTS, IONIC_SOLVENT_SMILES
 from .scalers import TorchMinMaxScaler, TorchStandardScaler
 
 
@@ -76,6 +76,11 @@ class SolventData3D(Dataset):
         self.max_confs = config["max_confs"]
         self.mode = mode
         self.solvent = config["solvent"]
+        self.solvents = list(SOLVENTS.values())[1:]
+
+        if config["no_ionic_solvents"]:
+            self.solvents = [s for s in self.solvents if s not in IONIC_SOLVENT_SMILES]
+            energies_df = energies_df[~energies_df['solvent'].isin(IONIC_SOLVENTS)]
 
         energies = energies_df[energies_df['mol_id'].isin(self.split)]
         energies = energies[energies['dG(solution)'] < config["threshold"]]
@@ -97,7 +102,7 @@ class SolventData3D(Dataset):
         if self.solvent:
             solvent_smi = self.solvent
         else:
-            solvent_smi = random.choice(list(SOLVENTS.values())[1:])
+            solvent_smi = random.choice(self.solvents)
 
         mol_id = self.mol_ids[key]
         sample_coords = self.coords.loc[(mol_id, slice(None))]
