@@ -83,15 +83,15 @@ class SolventData3D(Dataset):
             self.solvents = [s for s in self.solvents if s not in IONIC_SOLVENT_SMILES]
             energies_df = energies_df[~energies_df['solvent'].isin(IONIC_SOLVENTS)]
 
-        energies = energies_df[energies_df['mol_id'].isin(self.split)]
-        energies = energies[energies[self.param_name] < config["threshold"]]
-        self.energies = energies.dropna(subset=[self.param_name])
+        energies_df = energies_df[energies_df['mol_id'].isin(self.split)]
+        energies_df = energies_df[energies_df[self.param_name] < config["threshold"]]
+        energies_df = energies_df.dropna(subset=[self.param_name])
 
-        coords = coords_df[coords_df['mol_id'].isin(self.split)]
-        self.mol_ids = list(set(list(coords['mol_id'].unique())).intersection(set(list(self.energies['mol_id'].unique()))))
+        coords_df = coords_df[coords_df['mol_id'].isin(self.split)]
+        self.mol_ids = list(set(list(coords_df['mol_id'].unique())).intersection(set(list(energies_df['mol_id'].unique()))))
 
-        self.coords = coords.set_index(['mol_id', 'conf_id'])
-        self.energies = energies.set_index(['mol_id', 'conf_id', 'solvent'])
+        self.coords = coords_df.set_index(['mol_id', 'conf_id'])
+        self.energies = energies_df.set_index(['mol_id', 'conf_id', 'solvent'])
 
         if mode == 'train':  # figure out scaling
             # gsolvs = [g for conf_gs in self.conf_energies for g in conf_gs]
