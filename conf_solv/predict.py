@@ -6,7 +6,7 @@ from pytorch_lightning import seed_everything
 from conf_solv.dataloaders.loader import SolventData3DModule
 from conf_solv.trainer import LitConfSolvModule
 from conf_solv.utils.inference_utils import save_predictions
-from conf_solv.dataloaders.features import SOLVENTS
+from conf_solv.dataloaders.features import SOLVENTS, IONIC_SOLVENT_SMILES
 
 if 'linux' in sys.platform:
     import resource  # for ancdata error
@@ -23,10 +23,14 @@ def predict_conf_solv(config):
         checkpoint_path=os.path.join(config["trained_model_dir"], "best_model.ckpt"),
     )
 
+    pred_solvents = list(SOLVENTS.values())[1:]
+    if config["no_ionic_solvents"]:
+        pred_solvents = [s for s in pred_solvents if s not in IONIC_SOLVENT_SMILES]
+
     # get predictions on the test set
-    for solvent in list(SOLVENTS.keys())[1:]:
+    for solvent in pred_solvents:
         predict_dataloader = solvation_data.predict_dataloader()
-        predict_dataloader.dataset.solvent = SOLVENTS[solvent]
+        predict_dataloader.dataset.solvent = solvent
         save_predictions(
             model=model,
             dataloader=predict_dataloader,
