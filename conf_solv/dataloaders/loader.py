@@ -164,7 +164,7 @@ class SolventData3DModule(pl.LightningDataModule):
         self.num_workers = config["num_workers"]
 
         self.coords_df = pd.read_pickle(config["coords_path"])
-        self.energies_df = pd.read_pickle(config["energies_path"])
+        self.energies_df = pd.read_pickle(config["energies_path"])[["mol_id", "conf_id", "solvent", self.param_name]]
         self.split = np.load(config["split_path"], allow_pickle=True)
         self.node_dim, self.edge_dim = self.get_dims()
 
