@@ -1,0 +1,2 @@
+The data files are too big to be shared here. Please look for the files in the supplemental information of the publication: "ConfSolv: Prediction of solute conformer free
+energies across a range of solvents". 
