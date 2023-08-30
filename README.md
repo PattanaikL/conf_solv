@@ -26,3 +26,20 @@ git clone https://github.com/PattanaikL/conf_solv
 cd conf_solv
 pip install -e .
 ```
+## Training the Model 
+An example submission script for training a DimeNet++ model is provided in the submission_scripts folder. This submission script uses SLURM and is submitted with: 
+```
+sbatch train_dimenet.sh
+```
+The script should be easily adaptable for other schedulers. To train the model locally, one can call train.py directly with the necessary arguments:
+```
+python conf_solv/train.py args-list  
+```
+
+## Using the Model
+Previously trained models are found in the sample_trained_models folder. An example Jupyter Notebook on how to load and use these models is provided in the inference folder. 
+For making predictions on a large number of solutes and solvents using a single trained model, the predict.sh submission script in the submission_scripts folder can be used. As with the training script, this is submitted with:
+```
+sbatch predict.sh
+```
+Predictions are generated for each solute conformer in each of the available solvents.
