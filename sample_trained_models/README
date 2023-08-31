@@ -1,0 +1,2 @@
+This directory contains three models trained using the ConfSolv project. The solute 3D-DMPNN architecture used here is DimeNet++. 
+These example models have been trained using Bemis-Murcko scaffold splits, specifically scaffold split 0 in the dataset. These models can be loaded to run inference using the sample notebook.
