@@ -244,4 +244,3 @@ dependencies:
   - zstd=1.4.9
   - pip:
     - memory-profiler==0.61.0
-prefix: /home/gridsan/amenon/.conda/envs/ConfSolv
