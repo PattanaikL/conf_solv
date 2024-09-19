@@ -189,6 +189,8 @@ class LitConfSolvModule(pl.LightningModule):
         parser.add_argument('--split_path', type=str, default='data/debug/split_0.npy')
         parser.add_argument('--restart_path', type=str, default=None,
                             help="Path to latest model .ckpt file")
+        parser.add_argument('--checkpoint', type=str, default=None,
+                            help="Path to the model .ckpt file for loading and overwriting weights")
         parser.add_argument('--seed', type=int, default=0)
         parser.add_argument('--verbose', action='store_true', default=False)
         parser.add_argument('--debug', action='store_true', default=False)
