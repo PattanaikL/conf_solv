@@ -22,7 +22,10 @@ def train_conf_solv(config):
     solvation_data = SolventData3DModule(config)
     config["node_dim"] = solvation_data.node_dim
     config["edge_dim"] = solvation_data.edge_dim
-    model = LitConfSolvModule(config)
+    if config["checkpoint"]:
+        model = LitConfSolvModule.load_from_checkpoint(config["checkpoint"])
+    else:
+        model = LitConfSolvModule(config)
     checkpoint_callback = ModelCheckpoint(
         dirpath=config["log_dir"],
         filename='best_model',
